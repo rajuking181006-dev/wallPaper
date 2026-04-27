@@ -1,14 +1,16 @@
-// ===== CANVAS SETUP =====
+// ===== CANVAS =====
 const canvas = document.getElementById("particleCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.style.pointerEvents = "none"; // UI clickable rahe
+canvas.style.pointerEvents = "none";
 
 let particles = [];
 
 // ===== DEVICE DETECT =====
 const isMobile = window.innerWidth < 768;
-let particleCount = isMobile ? 30 : 70; // auto adjust
+
+// wallpaper ke liye slightly zyada particles
+let particleCount = isMobile ? 40 : 90;
 
 
 // ===== RESIZE =====
@@ -26,12 +28,16 @@ class Particle {
     this.x = Math.random() * canvas.width;
     this.y = Math.random() * canvas.height;
 
-    this.size = Math.random() * 2 + 1;
+    // ⭐ BIGGER SIZE (main fix)
+    this.size = isMobile
+      ? Math.random() * 4 + 2   // mobile big
+      : Math.random() * 3 + 1.5; // desktop
 
-    this.speedX = (Math.random() - 0.5) * (isMobile ? 0.4 : 0.7);
-    this.speedY = (Math.random() - 0.5) * (isMobile ? 0.4 : 0.7);
+    // ⭐ SLOW SMOOTH SPEED (wallpaper feel)
+    this.speedX = (Math.random() - 0.5) * (isMobile ? 0.3 : 0.5);
+    this.speedY = (Math.random() - 0.5) * (isMobile ? 0.3 : 0.5);
 
-    this.opacity = Math.random() * 0.5 + 0.3;
+    this.opacity = Math.random() * 0.6 + 0.4;
   }
 
   move() {
@@ -45,9 +51,16 @@ class Particle {
 
   draw() {
     ctx.beginPath();
+
+    // ⭐ GLOW EFFECT
+    ctx.shadowBlur = isMobile ? 15 : 10;
+    ctx.shadowColor = "rgba(255,255,255,0.8)";
+
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(255,255,255,${this.opacity})`;
     ctx.fill();
+
+    ctx.shadowBlur = 0; // reset
   }
 }
 
@@ -62,9 +75,9 @@ function initParticles() {
 initParticles();
 
 
-// ===== CONNECT =====
+// ===== CONNECT LINES =====
 function connectParticles() {
-  let maxDistance = isMobile ? 9000 : 12000;
+  let maxDistance = isMobile ? 10000 : 14000;
 
   for (let a = 0; a < particles.length; a++) {
     for (let b = a; b < particles.length; b++) {
@@ -76,7 +89,7 @@ function connectParticles() {
       if (distance < maxDistance) {
         let opacity = 1 - distance / maxDistance;
 
-        ctx.strokeStyle = `rgba(255,255,255,${opacity * 0.2})`;
+        ctx.strokeStyle = `rgba(255,255,255,${opacity * 0.15})`;
         ctx.lineWidth = 1;
 
         ctx.beginPath();
@@ -89,16 +102,14 @@ function connectParticles() {
 }
 
 
-// ===== INTERACTION =====
+// ===== OPTIONAL INTERACTION =====
 let pointer = { x: null, y: null, radius: isMobile ? 80 : 120 };
 
-// mouse (desktop)
 window.addEventListener("mousemove", (e) => {
   pointer.x = e.x;
   pointer.y = e.y;
 });
 
-// touch (mobile)
 window.addEventListener("touchmove", (e) => {
   pointer.x = e.touches[0].clientX;
   pointer.y = e.touches[0].clientY;
@@ -111,8 +122,8 @@ function interactionEffect() {
     let distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance < pointer.radius) {
-      p.x += dx / 25;
-      p.y += dy / 25;
+      p.x += dx / 40;
+      p.y += dy / 40;
     }
   });
 }
